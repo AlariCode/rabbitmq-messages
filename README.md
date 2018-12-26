@@ -22,12 +22,13 @@ const rmqConnection = new RMQService({
 ```
 
 Where options are:
-**exchangeName** (string) - Exchange that will be used to send messages to.
-**connections** (Object[]) - Array of connection parameters. You can use RQM cluster by using multiple connections.
+- **exchangeName** (string) - Exchange that will be used to send messages to.
+- **connections** (Object[]) - Array of connection parameters. You can use RQM cluster by using multiple connections.
 
 Additionally, you can use optional parameters:
-**queueName** (string) - Queue name which your microservice would listen and bind topics specified in subscriptions to this queue. If this parameter is not specified, your microservice could send messages and listen to reply or send notifications, but it couldn't get messages or notifications from other services.
-**subscriptions** (string[]) - Message topics your microservice will subscribe to. It will receive messages only with these topics. Full connection example:
+- **queueName** (string) - Queue name which your microservice would listen and bind topics specified in subscriptions to this queue. If this parameter is not specified, your microservice could send messages and listen to reply or send notifications, but it couldn't get messages or notifications from other services.
+- **subscriptions** (string[]) - Message topics your microservice will subscribe to. It will receive messages only with these topics. Full connection example:
+
 ``` javascript
 const rmqConnection = new RMQService({
   exchangeName: 'my_exchange',
@@ -43,9 +44,9 @@ const rmqConnection = new RMQService({
   ],
 });
 ```
-**prefetchCount** (boolean) - You can read more [here](https://github.com/postwait/node-amqp).
-**isGlobalPrefetchCount** (boolean) - You can read more [here](https://github.com/postwait/node-amqp).
-**reconnectTimeInSeconds** (number) - Time in seconds before reconnection retry. Default is 5 seconds.
+- **prefetchCount** (boolean) - You can read more [here](https://github.com/postwait/node-amqp).
+- **isGlobalPrefetchCount** (boolean) - You can read more [here](https://github.com/postwait/node-amqp).
+- **reconnectTimeInSeconds** (number) - Time in seconds before reconnection retry. Default is 5 seconds.
 
 After adding connection just init it:
 ``` javascript
@@ -56,12 +57,12 @@ rmqConnection.init();
 To send message with RPC topic use send() method:
 ``` javascript
 // In TypeScript
-rmqConnection.send<number[], number>('summ.rpc', [1, 2, 3]);
+rmqConnection.send<number[], number>('sum.rpc', [1, 2, 3]);
 // Or in JavaScript
 rmqConnection.send('sum.rpc', [1, 2, 3]);
 ```
 This method returns a Promise. First type - is a type you send, and the second - you recive.
-- 'summ.rpc' - name of subscription topic that you are sending to.
+- 'sum.rpc' - name of subscription topic that you are sending to.
 - [1, 2, 3] - data payload.
 To get a reply:
 ``` javascript
