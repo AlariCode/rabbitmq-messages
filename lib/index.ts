@@ -11,9 +11,8 @@ import {
     ERROR_NONE_RPC,
 } from './constants';
 import { EventEmitter } from 'events';
-import { Message } from 'amqplib';
+import { Message, Channel } from 'amqplib';
 import { Signale } from 'signale';
-import { Channel } from 'amqplib';
 import * as amqp from 'amqp-connection-manager';
 
 const logger = new Signale({
