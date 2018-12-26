@@ -1,11 +1,11 @@
 {
-  "name": "rabbitmq-rpc",
-  "version": "0.1.0",
+  "name": "rabbitmq-messages",
+  "version": "0.1.4",
   "description": "RabbitMQ RPC library",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "prepublishOnly": "./node_modules/.bin/tsc -p tsconfig.json",
+    "prepublish": "./node_modules/.bin/tsc -p tsconfig.json",
     "test": "mocha --require ts-node/register tests/**/*.ts"
   },
   "author": "Anton Larichev <antonlarichev@gmail.com>",
@@ -16,13 +16,13 @@
   ],
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/AlariCode/rabbitmq-rpc"
   },
   "license": "MIT",
   "bugs": {
-    "url": ""
+    "url": "https://github.com/AlariCode/rabbitmq-rpc/issues"
   },
-  "homepage": "",
+  "homepage": "https://github.com/AlariCode/rabbitmq-rpc",
   "dependencies": {
     "amqp-connection-manager": "^2.3.0",
     "amqplib": "^0.5.3",

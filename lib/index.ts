@@ -81,13 +81,12 @@ export class RMQService {
 
     public async send<IMessage, IReply>(topic: string, message: IMessage): Promise<IReply> {
         return new Promise(async (resolve, reject) => {
-            if (!this.server.isConnected()) {
+            if (!this.server || !this.server.isConnected()) {
                 await this.init();
             }
             const correlationId = this.generateGuid();
             this.responseEmitter.on(correlationId, msg => {
                 const { content } = msg;
-                logger.log(content.toString());
                 if (content.toString()) {
                     resolve(JSON.parse(content.toString()));
                 } else {
@@ -102,7 +101,7 @@ export class RMQService {
     }
 
     public async notify<IMessage>(topic: string, message: IMessage): Promise<void> {
-        if (!this.server.isConnected()) {
+        if (!this.server || !this.server.isConnected()) {
             await this.init();
         }
         this.channel.publish(this.options.exchangeName, topic, Buffer.from(JSON.stringify(message)));
@@ -117,7 +116,8 @@ export class RMQService {
     private async handleMessage(msg: Message): Promise<void> {
         const route = this.router.find(r => r.topic === msg.fields.routingKey);
         if (route) {
-            const result = await route.function(msg);
+            const { content } = msg;
+            const result = await route.function(JSON.parse(content.toString()));
             if (msg.properties.replyTo && result) {
                 this.channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(result)), {
                     correlationId: msg.properties.correlationId,
