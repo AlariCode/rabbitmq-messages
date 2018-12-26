@@ -13,6 +13,7 @@ import {
 import { EventEmitter } from 'events';
 import { Message, Channel } from 'amqplib';
 import { Signale } from 'signale';
+import { ChannelWrapper } from 'amqp-connection-manager';
 import * as amqp from 'amqp-connection-manager';
 
 const logger = new Signale({
@@ -24,7 +25,7 @@ const logger = new Signale({
 
 export class RMQService {
     private server: any = null;
-    private channel: Channel = null;
+    private channel: ChannelWrapper = null;
     private exchange: any = null;
     private options: IRMQServiceOptions;
     private responseEmitter: EventEmitter;
@@ -47,7 +48,7 @@ export class RMQService {
         this.server.on(CONNECT_EVENT, () => {
             this.channel = this.server.createChannel({
                 json: false,
-                setup: async (channel) => {
+                setup: async (channel: Channel) => {
                     this.exchange = await channel.assertExchange(this.options.exchangeName, EXCHANGE_TYPE, { durable: true });
                     if (this.options.queueName) {
                         await channel.assertQueue(this.options.queueName, { durable: true });
