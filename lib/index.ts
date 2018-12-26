@@ -1,4 +1,4 @@
-import { IRMQServiceOptions } from './rmq.interface';
+import { IRMQServiceOptions, IRMQConnection, IRMQRouter } from './rmq.interface';
 import {
     CONNECT_EVENT,
     DISCONNECT_EVENT,
@@ -13,7 +13,7 @@ import {
 import { EventEmitter } from 'events';
 import { Message, Channel } from 'amqplib';
 import { Signale } from 'signale';
-import { ChannelWrapper } from 'amqp-connection-manager';
+import { ChannelWrapper, AmqpConnectionManager } from 'amqp-connection-manager';
 import * as amqp from 'amqp-connection-manager';
 
 const logger = new Signale({
@@ -24,13 +24,12 @@ const logger = new Signale({
 });
 
 export class RMQService {
-    private server: any = null;
+    private server: AmqpConnectionManager = null;
     private channel: ChannelWrapper = null;
-    private exchange: any = null;
     private options: IRMQServiceOptions;
     private responseEmitter: EventEmitter;
     private replyQueue: string = REPLY_QUEUE;
-    private router: any[] = [];
+    private router: IRMQRouter[] = [];
 
     constructor(options: IRMQServiceOptions) {
         this.options = options;
@@ -38,7 +37,7 @@ export class RMQService {
 
     public async init(): Promise<void> {
         logger.watch(CONNECTING_MESSAGE);
-        const connectionURLs: string[] = this.options.connections.map(connection => {
+        const connectionURLs: string[] = this.options.connections.map((connection: IRMQConnection) => {
             return `amqp://${connection.login}:${connection.password}@${connection.host}`;
         });
         const connectionOptins = {
@@ -49,10 +48,10 @@ export class RMQService {
             this.channel = this.server.createChannel({
                 json: false,
                 setup: async (channel: Channel) => {
-                    this.exchange = await channel.assertExchange(this.options.exchangeName, EXCHANGE_TYPE, { durable: true });
+                    await channel.assertExchange(this.options.exchangeName, EXCHANGE_TYPE, { durable: true });
                     if (this.options.queueName) {
                         await channel.assertQueue(this.options.queueName, { durable: true });
-                        channel.consume(this.options.queueName, (msg) => this.handleMessage(msg), { noAck: true });
+                        channel.consume(this.options.queueName, (msg: Message) => this.handleMessage(msg), { noAck: true });
                         if (this.options.subscriptions) {
                             this.options.subscriptions.map(async sub => {
                                 await channel.bindQueue(this.options.queueName, this.options.exchangeName, sub);
@@ -65,7 +64,7 @@ export class RMQService {
                     );
                     this.responseEmitter = new EventEmitter();
                     this.responseEmitter.setMaxListeners(0);
-                    channel.consume(this.replyQueue, (msg) => {
+                    channel.consume(this.replyQueue, (msg: Message) => {
                         this.responseEmitter.emit(msg.properties.correlationId, msg);
                     }, { noAck: true });
                     logger.success(CONNECTED_MESSAGE);
@@ -85,7 +84,7 @@ export class RMQService {
                 await this.init();
             }
             const correlationId = this.generateGuid();
-            this.responseEmitter.on(correlationId, msg => {
+            this.responseEmitter.on(correlationId, (msg: Message) => {
                 const { content } = msg;
                 if (content.toString()) {
                     resolve(JSON.parse(content.toString()));

@@ -1,6 +1,6 @@
 export interface IRMQServiceOptions {
     exchangeName: string;
-    connections: IConnection[];
+    connections: IRMQConnection[];
     queueName?: string;
     prefetchCount?: number;
     isGlobalPrefetchCount?: boolean;
@@ -8,8 +8,14 @@ export interface IRMQServiceOptions {
     reconnectTimeInSeconds?: number;
 }
 
-interface IConnection {
+export interface IRMQConnection {
     login: string;
     password: string;
     host: string;
+}
+
+export interface IRMQRouter {
+    topic: string;
+    // tslint:disable-next-line:ban-types
+    function: Function;
 }
