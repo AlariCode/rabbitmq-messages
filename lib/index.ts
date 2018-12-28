@@ -16,7 +16,7 @@ import { Message, Channel } from 'amqplib';
 import { Signale } from 'signale';
 import { ChannelWrapper, AmqpConnectionManager } from 'amqp-connection-manager';
 import * as amqp from 'amqp-connection-manager';
-import 'reflect-metadata'
+import 'reflect-metadata';
 
 const logger = new Signale({
     config: {
@@ -25,16 +25,17 @@ const logger = new Signale({
     },
 });
 
-export class RMQController {
+export abstract class RMQController {
     private server: AmqpConnectionManager = null;
     private channel: ChannelWrapper = null;
     private options: IRMQServiceOptions;
-    private responseEmitter: EventEmitter;
+    private responseEmitter: EventEmitter = new EventEmitter();
     private replyQueue: string = REPLY_QUEUE;
     private router: IRMQRouter[] = [];
 
     constructor(options: IRMQServiceOptions) {
         this.options = options;
+        this.responseEmitter.setMaxListeners(0);
         this.router = Reflect.getMetadata(RMQ_ROUTES_META, new.target.prototype);
         this.init();
     }
@@ -48,32 +49,28 @@ export class RMQController {
             reconnectTimeInSeconds: this.options.reconnectTimeInSeconds ? this.options.reconnectTimeInSeconds : RECONNECT_TIME,
         };
         this.server = amqp.connect(connectionURLs, connectionOptins);
-        this.server.on(CONNECT_EVENT, () => {
-            this.channel = this.server.createChannel({
-                json: false,
-                setup: async (channel: Channel) => {
-                    await channel.assertExchange(this.options.exchangeName, EXCHANGE_TYPE, { durable: true });
-                    if (this.options.queueName) {
-                        await channel.assertQueue(this.options.queueName, { durable: true });
-                        channel.consume(this.options.queueName, (msg: Message) => this.handleMessage(msg), { noAck: true });
-                        if (this.options.subscriptions) {
-                            this.options.subscriptions.map(async sub => {
-                                await channel.bindQueue(this.options.queueName, this.options.exchangeName, sub);
-                            });
-                        }
+        this.channel = this.server.createChannel({
+            json: false,
+            setup: async (channel: Channel) => {
+                await channel.assertExchange(this.options.exchangeName, EXCHANGE_TYPE, { durable: true });
+                if (this.options.queueName) {
+                    await channel.assertQueue(this.options.queueName, { durable: true });
+                    channel.consume(this.options.queueName, (msg: Message) => this.handleMessage(msg), { noAck: true });
+                    if (this.options.subscriptions) {
+                        this.options.subscriptions.map(async sub => {
+                            await channel.bindQueue(this.options.queueName, this.options.exchangeName, sub);
+                        });
                     }
-                    await channel.prefetch(
-                        this.options.prefetchCount ? this.options.prefetchCount : 0,
-                        this.options.isGlobalPrefetchCount ? this.options.isGlobalPrefetchCount : false,
-                    );
-                    this.responseEmitter = new EventEmitter();
-                    this.responseEmitter.setMaxListeners(0);
-                    channel.consume(this.replyQueue, (msg: Message) => {
-                        this.responseEmitter.emit(msg.properties.correlationId, msg);
-                    }, { noAck: true });
-                    logger.success(CONNECTED_MESSAGE);
-                },
-            });
+                }
+                await channel.prefetch(
+                    this.options.prefetchCount ? this.options.prefetchCount : 0,
+                    this.options.isGlobalPrefetchCount ? this.options.isGlobalPrefetchCount : false,
+                );
+                channel.consume(this.replyQueue, (msg: Message) => {
+                    this.responseEmitter.emit(msg.properties.correlationId, msg);
+                }, { noAck: true });
+                logger.success(CONNECTED_MESSAGE);
+            },
         });
 
         this.server.on(DISCONNECT_EVENT, err => {
@@ -83,7 +80,7 @@ export class RMQController {
     }
 
     public async send<IMessage, IReply>(topic: string, message: IMessage): Promise<IReply> {
-        return new Promise(async (resolve, reject) => {
+        return new Promise<IReply>(async (resolve, reject) => {
             if (!this.server || !this.server.isConnected()) {
                 await this.init();
             }
