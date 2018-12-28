@@ -7,3 +7,4 @@ export const REPLY_QUEUE: string = 'amq.rabbitmq.reply-to';
 export const EXCHANGE_TYPE: string = 'topic';
 export const RECONNECT_TIME: number = 5;
 export const ERROR_NONE_RPC: string = 'This is none RPC queue. Use notify() method instead';
+export const RMQ_ROUTES_META: string = 'RMQ_ROUTES_META';

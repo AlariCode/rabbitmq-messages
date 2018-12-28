@@ -15,7 +15,6 @@ export interface IRMQConnection {
 }
 
 export interface IRMQRouter {
-    topic: string;
-    // tslint:disable-next-line:ban-types
-    function: Function;
+    route: string;
+    propertyKey: any;
 }

@@ -9,19 +9,25 @@ First, install the package:
 npm i rabbitmq-messages
 ```
 
-Then you need to add new connections with options:
+Then you need to extend your controller with RMQController:
 ``` javascript
-const rmqConnection = new RMQService({
-  exchangeName: 'my_exchange',
-  connections: [{
-      login: 'admin',
-      password: 'admin',
-      host: 'localhost',
-  }],
-});
+import { RMQController, RMQRoute } from 'rabbitmq-messages';
+
+export class AppController extends RMQController {
+    constructor() {
+        super({
+            exchangeName: 'my_exchange',
+            connections: [{
+                login: 'admin',
+                password: 'admin',
+                host: 'localhost',
+            }],
+        });
+    }
+}
 ```
 
-Where options are:
+In super() you pass connection options =:
 - **exchangeName** (string) - Exchange that will be used to send messages to.
 - **connections** (Object[]) - Array of connection parameters. You can use RQM cluster by using multiple connections.
 
@@ -30,7 +36,7 @@ Additionally, you can use optional parameters:
 - **subscriptions** (string[]) - Message topics your microservice will subscribe to. It will receive messages only with these topics. Full connection example:
 
 ``` javascript
-const rmqConnection = new RMQService({
+super({
   exchangeName: 'my_exchange',
   connections: [{
       login: 'admin',
@@ -42,61 +48,61 @@ const rmqConnection = new RMQService({
     'sum.rpc',
     'info.none'
   ],
-});
+})
 ```
 - **prefetchCount** (boolean) - You can read more [here](https://github.com/postwait/node-amqp).
 - **isGlobalPrefetchCount** (boolean) - You can read more [here](https://github.com/postwait/node-amqp).
 - **reconnectTimeInSeconds** (number) - Time in seconds before reconnection retry. Default is 5 seconds.
 
-After adding connection just init it:
-``` javascript
-rmqConnection.init();
-```
-
 ## Sending messages
-To send message with RPC topic use send() method:
+To send message with RPC topic use send() method in your controller or service:
 ``` javascript
 // In TypeScript
-rmqConnection.send<number[], number>('sum.rpc', [1, 2, 3]);
+this.send<number[], number>('sum.rpc', [1, 2, 3]);
 // Or in JavaScript
-rmqConnection.send('sum.rpc', [1, 2, 3]);
+this.send('sum.rpc', [1, 2, 3]);
 ```
 This method returns a Promise. First type - is a type you send, and the second - you recive.
 - 'sum.rpc' - name of subscription topic that you are sending to.
 - [1, 2, 3] - data payload.
 To get a reply:
 ``` javascript
-rmqConnection.send('sum.rpc', [1, 2, 3]).then(reply => {
+this.send('sum.rpc', [1, 2, 3]).then(reply => {
     //...
 });
 ```
 If you want to just notify services:
 ``` javascript
 // In TypeScript
-rmqConnection.notify<string>('info.none', 'My data');
+this.notify<string>('info.none', 'My data');
 // Or in JavaScript
-rmqConnection.notify('info.none', 'My data');
+this.notify('info.none', 'My data');
 ```
 This method returns a Promise.
 - 'info.none' - name of subscription topic that you are notifying.
 - 'My data' - data payload.
 
 ## Recieving messages
-To listen for messages bind your functions to subscription topics with **RMQRoute()** decorator:
+To listen for messages bind your controller methods to subscription topics with **RMQRoute()** decorator:
 ``` javascript
-@rmqConnection.RMQRoute('sum.rpc')
-sum(numbers: number[]): number {
-    return numbers.reduce((a, b) => a + b, 0);
-}
+export class AppController extends RMQController {
 
-@rmqConnection.RMQRoute('info.none')
-info(data: string) {
-    console.log(data);
+    //...
+
+    @RMQRoute('sum.rpc')
+    sum(numbers: number[]): number {
+        return numbers.reduce((a, b) => a + b, 0);
+    }
+
+    @RMQRoute('info.none')
+    info(data: string) {
+        console.log(data);
+    }
 }
 ```
 Return value will be send back as a reply in RPC topic. In 'sum.rpc' example it will send sum of array values. And sender will get `6`:
 ``` javascript
-rmqConnection.send('sum.rpc', [1, 2, 3]).then(reply => {
+this.send('sum.rpc', [1, 2, 3]).then(reply => {
     // reply: 6
 });
 ```

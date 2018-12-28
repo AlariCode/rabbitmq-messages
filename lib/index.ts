@@ -9,21 +9,23 @@ import {
     EXCHANGE_TYPE,
     RECONNECT_TIME,
     ERROR_NONE_RPC,
+    RMQ_ROUTES_META,
 } from './constants';
 import { EventEmitter } from 'events';
 import { Message, Channel } from 'amqplib';
 import { Signale } from 'signale';
 import { ChannelWrapper, AmqpConnectionManager } from 'amqp-connection-manager';
 import * as amqp from 'amqp-connection-manager';
+import 'reflect-metadata'
 
 const logger = new Signale({
     config: {
         displayTimestamp: true,
         displayDate: true,
-      },
+    },
 });
 
-export class RMQService {
+export class RMQController {
     private server: AmqpConnectionManager = null;
     private channel: ChannelWrapper = null;
     private options: IRMQServiceOptions;
@@ -33,6 +35,8 @@ export class RMQService {
 
     constructor(options: IRMQServiceOptions) {
         this.options = options;
+        this.router = Reflect.getMetadata(RMQ_ROUTES_META, new.target.prototype);
+        this.init();
     }
 
     public async init(): Promise<void> {
@@ -106,17 +110,15 @@ export class RMQService {
         this.channel.publish(this.options.exchangeName, topic, Buffer.from(JSON.stringify(message)));
     }
 
-    public RMQRoute(value: string) {
-        return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
-            this.router.push({ topic: value, function: descriptor.value });
-        };
-    }
-
     private async handleMessage(msg: Message): Promise<void> {
-        const route = this.router.find(r => r.topic === msg.fields.routingKey);
+        const route = this.router.find(r => r.route === msg.fields.routingKey);
         if (route) {
             const { content } = msg;
-            const result = await route.function(JSON.parse(content.toString()));
+            let result;
+            try {
+                result = await this[route.propertyKey](JSON.parse(content.toString()));
+            } catch (err) {
+            }
             if (msg.properties.replyTo && result) {
                 this.channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(result)), {
                     correlationId: msg.properties.correlationId,
@@ -127,10 +129,21 @@ export class RMQService {
 
     private generateGuid(): string {
         function s4() {
-          return Math.floor((1 + Math.random()) * 0x10000)
-            .toString(16)
-            .substring(1);
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
         }
         return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
     }
 }
+
+export const RMQRoute = (route) => {
+    return (target, propertyKey, descriptor) => {
+        let routes = Reflect.getMetadata(RMQ_ROUTES_META, target);
+        if (!routes) {
+            routes = [];
+        }
+        routes.push({ route, propertyKey });
+        Reflect.defineMetadata(RMQ_ROUTES_META, routes, target);
+    };
+};
