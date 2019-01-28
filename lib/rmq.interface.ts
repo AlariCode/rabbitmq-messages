@@ -2,6 +2,9 @@ export interface IRMQServiceOptions {
     exchangeName: string;
     connections: IRMQConnection[];
     queueName?: string;
+    queueArguments?: {
+        [key: string]: string;
+    };
     prefetchCount?: number;
     isGlobalPrefetchCount?: boolean;
     subscriptions?: string[];

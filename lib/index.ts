@@ -54,7 +54,10 @@ export abstract class RMQController {
             setup: async (channel: Channel) => {
                 await channel.assertExchange(this.options.exchangeName, EXCHANGE_TYPE, { durable: true });
                 if (this.options.queueName) {
-                    await channel.assertQueue(this.options.queueName, { durable: true });
+                    await channel.assertQueue(this.options.queueName, {
+                        durable: true,
+                        arguments: this.options.queueArguments ? this.options.queueArguments : {},
+                    });
                     channel.consume(this.options.queueName, (msg: Message) => this.handleMessage(msg), { noAck: true });
                     if (this.options.subscriptions) {
                         this.options.subscriptions.map(async sub => {

@@ -1,4 +1,7 @@
 # Change log
+## v0.3.0
+- Added queue arguments to options
+
 ## v0.2.0
 - Added RMQController class
 - Decorator moved to separate function
