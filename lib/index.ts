@@ -31,12 +31,13 @@ export abstract class RMQController {
     private options: IRMQServiceOptions;
     private responseEmitter: EventEmitter = new EventEmitter();
     private replyQueue: string = REPLY_QUEUE;
-    private router: IRMQRouter[] = [];
+    private router: IRMQRouter[];
 
     constructor(options: IRMQServiceOptions) {
         this.options = options;
         this.responseEmitter.setMaxListeners(0);
-        this.router = Reflect.getMetadata(RMQ_ROUTES_META, new.target.prototype);
+        const metaData = Reflect.getMetadata(RMQ_ROUTES_META, new.target.prototype);
+        this.router = metaData ? metaData : [];
         this.init();
     }
 

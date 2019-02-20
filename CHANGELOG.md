@@ -1,4 +1,7 @@
 # Change log
+## v0.3.1
+- Fixed error if no routes specified
+
 ## v0.3.0
 - Added queue arguments to options
 
