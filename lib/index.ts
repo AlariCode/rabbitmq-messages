@@ -1,6 +1,5 @@
 import { IRMQServiceOptions, IRMQConnection, IRMQRouter } from './rmq.interface';
 import {
-    CONNECT_EVENT,
     DISCONNECT_EVENT,
     DISCONNECT_MESSAGE,
     REPLY_QUEUE,
@@ -10,6 +9,7 @@ import {
     RECONNECT_TIME,
     ERROR_NONE_RPC,
     RMQ_ROUTES_META,
+    ERROR_NO_ROUTE,
 } from './constants';
 import { EventEmitter } from 'events';
 import { Message, Channel } from 'amqplib';
@@ -122,6 +122,12 @@ export abstract class RMQController {
             }
             if (msg.properties.replyTo && result) {
                 this.channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(result)), {
+                    correlationId: msg.properties.correlationId,
+                });
+            }
+        } else {
+            if (msg.properties.replyTo) {
+                this.channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify({error: ERROR_NO_ROUTE})), {
                     correlationId: msg.properties.correlationId,
                 });
             }

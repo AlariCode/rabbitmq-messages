@@ -1,4 +1,7 @@
 # Change log
+## v0.4.0
+- Added error message if RMQRoute doesn't exist
+
 ## v0.3.1
 - Fixed error if no routes specified
 
