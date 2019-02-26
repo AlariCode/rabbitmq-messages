@@ -60,9 +60,9 @@ export abstract class RMQController {
                         arguments: this.options.queueArguments ? this.options.queueArguments : {},
                     });
                     channel.consume(this.options.queueName, (msg: Message) => this.handleMessage(msg), { noAck: true });
-                    if (this.options.subscriptions) {
-                        this.options.subscriptions.map(async sub => {
-                            await channel.bindQueue(this.options.queueName, this.options.exchangeName, sub);
+                    if (this.router.length > 0) {
+                        this.router.map(async route => {
+                            await channel.bindQueue(this.options.queueName, this.options.exchangeName, route.route);
                         });
                     }
                 }
@@ -127,7 +127,7 @@ export abstract class RMQController {
             }
         } else {
             if (msg.properties.replyTo) {
-                this.channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify({error: ERROR_NO_ROUTE})), {
+                this.channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify({ error: ERROR_NO_ROUTE })), {
                     correlationId: msg.properties.correlationId,
                 });
             }

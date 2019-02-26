@@ -7,7 +7,6 @@ export interface IRMQServiceOptions {
     };
     prefetchCount?: number;
     isGlobalPrefetchCount?: boolean;
-    subscriptions?: string[];
     reconnectTimeInSeconds?: number;
 }
 

@@ -1,4 +1,7 @@
 # Change log
+## v0.5.0
+- Auto topic bindings based on RMQRoute inside RMQController. No more need for subscriptions parameter.
+
 ## v0.4.0
 - Added error message if RMQRoute doesn't exist
 

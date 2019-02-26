@@ -32,8 +32,8 @@ In super() you pass connection options =:
 - **connections** (Object[]) - Array of connection parameters. You can use RQM cluster by using multiple connections.
 
 Additionally, you can use optional parameters:
-- **queueName** (string) - Queue name which your microservice would listen and bind topics specified in subscriptions to this queue. If this parameter is not specified, your microservice could send messages and listen to reply or send notifications, but it couldn't get messages or notifications from other services.
-- **subscriptions** (string[]) - Message topics your microservice will subscribe to. It will receive messages only with these topics. Full connection example:
+- **queueName** (string) - Queue name which your microservice would listen and bind topics specified in '@RMQRoute' decorator to this queue. If this parameter is not specified, your microservice could send messages and listen to reply or send notifications, but it couldn't get messages or notifications from other services.
+Example:
 
 ``` javascript
 super({
@@ -44,10 +44,6 @@ super({
       host: 'localhost',
   }],
   queueName: 'my-service-queue',
-  subscriptions: [
-    'sum.rpc',
-    'info.none'
-  ],
 })
 ```
 - **prefetchCount** (boolean) - You can read more [here](https://github.com/postwait/node-amqp).
@@ -107,3 +103,8 @@ this.send('sum.rpc', [1, 2, 3]).then(reply => {
     // reply: 6
 });
 ```
+Each '@RMQRoute' topic will be automatically bound to queue specified in 'queueName' option.
+
+# Breaking Changes
+## v0.5.0
+- 'subscriptions' parameters is no longer supported. Queue will be automatically bound to all '@RMQRoute' in RMQController.
