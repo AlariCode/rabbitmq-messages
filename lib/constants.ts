@@ -9,3 +9,5 @@ export const RECONNECT_TIME: number = 5;
 export const ERROR_NONE_RPC: string = 'This is none RPC queue. Use notify() method instead';
 export const RMQ_ROUTES_META: string = 'RMQ_ROUTES_META';
 export const ERROR_NO_ROUTE: string = 'Requested service doesn\'t have RMQRoute with this path';
+export const ERROR_TIMEOUT: string = 'Response timeout error';
+export const TIMEOUT: number = 30000;

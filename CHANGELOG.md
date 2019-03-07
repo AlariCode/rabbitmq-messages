@@ -1,4 +1,8 @@
 # Change log
+## v0.6.0
+- Added timeout option
+- Fixed memory leak issue
+
 ## v0.5.0
 - Auto topic bindings based on RMQRoute inside RMQController. No more need for subscriptions parameter.
 

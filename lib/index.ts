@@ -10,6 +10,8 @@ import {
     ERROR_NONE_RPC,
     RMQ_ROUTES_META,
     ERROR_NO_ROUTE,
+    ERROR_TIMEOUT,
+    TIMEOUT,
 } from './constants';
 import { EventEmitter } from 'events';
 import { Message, Channel } from 'amqplib';
@@ -89,7 +91,7 @@ export abstract class RMQController {
                 await this.init();
             }
             const correlationId = this.generateGuid();
-            this.responseEmitter.on(correlationId, (msg: Message) => {
+            this.responseEmitter.once(correlationId, (msg: Message) => {
                 const { content } = msg;
                 if (content.toString()) {
                     resolve(JSON.parse(content.toString()));
@@ -101,6 +103,10 @@ export abstract class RMQController {
                 replyTo: this.replyQueue,
                 correlationId,
             });
+            const timeout = this.options.messagesTimeout ? this.options.messagesTimeout : TIMEOUT;
+            setTimeout(() => {
+                reject(new Error(`${ERROR_TIMEOUT}: ${timeout}`));
+            }, timeout);
         });
     }
 

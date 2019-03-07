@@ -50,6 +50,7 @@ super({
 - **isGlobalPrefetchCount** (boolean) - You can read more [here](https://github.com/postwait/node-amqp).
 - **reconnectTimeInSeconds** (number) - Time in seconds before reconnection retry. Default is 5 seconds.
 - **queueArguments** (object) - You can read more about queue parameters [here](https://www.rabbitmq.com/parameters.html).
+- **messagesTimeout** (number) - Number of milliseconds 'post' method will wait for the response before a timeout error. Default is 30 000.
 
 ## Sending messages
 To send message with RPC topic use send() method in your controller or service:

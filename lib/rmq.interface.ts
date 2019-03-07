@@ -8,6 +8,7 @@ export interface IRMQServiceOptions {
     prefetchCount?: number;
     isGlobalPrefetchCount?: boolean;
     reconnectTimeInSeconds?: number;
+    messagesTimeout?: number;
 }
 
 export interface IRMQConnection {
