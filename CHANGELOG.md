@@ -1,4 +1,7 @@
 # Change log
+## v0.6.1
+- Fixed timer issue
+
 ## v0.6.0
 - Added timeout option
 - Fixed memory leak issue

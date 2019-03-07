@@ -91,7 +91,12 @@ export abstract class RMQController {
                 await this.init();
             }
             const correlationId = this.generateGuid();
+            const timeout = this.options.messagesTimeout ? this.options.messagesTimeout : TIMEOUT;
+            const timerId = setTimeout(() => {
+                reject(new Error(`${ERROR_TIMEOUT}: ${timeout}`));
+            }, timeout);
             this.responseEmitter.once(correlationId, (msg: Message) => {
+                clearTimeout(timerId);
                 const { content } = msg;
                 if (content.toString()) {
                     resolve(JSON.parse(content.toString()));
@@ -103,10 +108,6 @@ export abstract class RMQController {
                 replyTo: this.replyQueue,
                 correlationId,
             });
-            const timeout = this.options.messagesTimeout ? this.options.messagesTimeout : TIMEOUT;
-            setTimeout(() => {
-                reject(new Error(`${ERROR_TIMEOUT}: ${timeout}`));
-            }, timeout);
         });
     }
 
