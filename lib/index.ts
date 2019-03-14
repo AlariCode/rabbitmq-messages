@@ -6,12 +6,13 @@ import {
     CONNECTING_MESSAGE,
     CONNECTED_MESSAGE,
     EXCHANGE_TYPE,
-    RECONNECT_TIME,
+    DEFAULT_RECONNECT_TIME,
     ERROR_NONE_RPC,
     RMQ_ROUTES_META,
     ERROR_NO_ROUTE,
     ERROR_TIMEOUT,
-    TIMEOUT,
+    DEFAULT_TIMEOUT,
+    CUSTOM_LOGS,
 } from './constants';
 import { EventEmitter } from 'events';
 import { Message, Channel } from 'amqplib';
@@ -20,13 +21,6 @@ import { ChannelWrapper, AmqpConnectionManager } from 'amqp-connection-manager';
 import * as amqp from 'amqp-connection-manager';
 import 'reflect-metadata';
 
-const logger = new Signale({
-    config: {
-        displayTimestamp: true,
-        displayDate: true,
-    },
-});
-
 export abstract class RMQController {
     private server: AmqpConnectionManager = null;
     private channel: ChannelWrapper = null;
@@ -34,22 +28,31 @@ export abstract class RMQController {
     private responseEmitter: EventEmitter = new EventEmitter();
     private replyQueue: string = REPLY_QUEUE;
     private router: IRMQRouter[];
+    private logger: any;
 
     constructor(options: IRMQServiceOptions) {
         this.options = options;
         this.responseEmitter.setMaxListeners(0);
         const metaData = Reflect.getMetadata(RMQ_ROUTES_META, new.target.prototype);
         this.router = metaData ? metaData : [];
+        this.logger = new Signale({
+            config: {
+                displayTimestamp: true,
+                displayDate: true,
+            },
+            logLevel: options.logLevel ? options.logLevel : 'error',
+            types: CUSTOM_LOGS
+        });
         this.init();
     }
 
     public async init(): Promise<void> {
-        logger.watch(CONNECTING_MESSAGE);
+        this.logger.watch(CONNECTING_MESSAGE);
         const connectionURLs: string[] = this.options.connections.map((connection: IRMQConnection) => {
             return `amqp://${connection.login}:${connection.password}@${connection.host}`;
         });
         const connectionOptins = {
-            reconnectTimeInSeconds: this.options.reconnectTimeInSeconds ? this.options.reconnectTimeInSeconds : RECONNECT_TIME,
+            reconnectTimeInSeconds: this.options.reconnectTimeInSeconds ? this.options.reconnectTimeInSeconds : DEFAULT_RECONNECT_TIME,
         };
         this.server = amqp.connect(connectionURLs, connectionOptins);
         this.channel = this.server.createChannel({
@@ -75,13 +78,13 @@ export abstract class RMQController {
                 channel.consume(this.replyQueue, (msg: Message) => {
                     this.responseEmitter.emit(msg.properties.correlationId, msg);
                 }, { noAck: true });
-                logger.success(CONNECTED_MESSAGE);
+                this.logger.success(CONNECTED_MESSAGE);
             },
         });
 
         this.server.on(DISCONNECT_EVENT, err => {
-            logger.error(DISCONNECT_MESSAGE);
-            logger.error(err.err);
+            this.logger.error(DISCONNECT_MESSAGE);
+            this.logger.error(err.err);
         });
     }
 
@@ -91,7 +94,7 @@ export abstract class RMQController {
                 await this.init();
             }
             const correlationId = this.generateGuid();
-            const timeout = this.options.messagesTimeout ? this.options.messagesTimeout : TIMEOUT;
+            const timeout = this.options.messagesTimeout ? this.options.messagesTimeout : DEFAULT_TIMEOUT;
             const timerId = setTimeout(() => {
                 reject(new Error(`${ERROR_TIMEOUT}: ${timeout}`));
             }, timeout);
@@ -108,6 +111,7 @@ export abstract class RMQController {
                 replyTo: this.replyQueue,
                 correlationId,
             });
+            this.logger.sent(`[${topic}] ${message}`);
         });
     }
 
@@ -116,9 +120,11 @@ export abstract class RMQController {
             await this.init();
         }
         this.channel.publish(this.options.exchangeName, topic, Buffer.from(JSON.stringify(message)));
+        this.logger.sent(`[${topic}] ${message}`);
     }
 
     private async handleMessage(msg: Message): Promise<void> {
+        this.logger.recieved(`[${msg.fields.routingKey}] ${msg.content}`);
         const route = this.router.find(r => r.route === msg.fields.routingKey);
         if (route) {
             const { content } = msg;
@@ -126,17 +132,20 @@ export abstract class RMQController {
             try {
                 result = await this[route.propertyKey](JSON.parse(content.toString()));
             } catch (err) {
+                this.logger.error(err.message);
             }
             if (msg.properties.replyTo && result) {
                 this.channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(result)), {
                     correlationId: msg.properties.correlationId,
                 });
+                this.logger.sent(`[${msg.fields.routingKey}] ${result}`);
             }
         } else {
             if (msg.properties.replyTo) {
                 this.channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify({ error: ERROR_NO_ROUTE })), {
                     correlationId: msg.properties.correlationId,
                 });
+                this.logger.sent(`[${msg.fields.routingKey}] ${ERROR_NO_ROUTE}`);
             }
         }
     }

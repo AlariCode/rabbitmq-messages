@@ -9,6 +9,7 @@ export interface IRMQServiceOptions {
     isGlobalPrefetchCount?: boolean;
     reconnectTimeInSeconds?: number;
     messagesTimeout?: number;
+    logLevel?: logLevel;
 }
 
 export interface IRMQConnection {
@@ -21,3 +22,5 @@ export interface IRMQRouter {
     route: string;
     propertyKey: any;
 }
+
+export type logLevel = 'info' | 'debug' | 'warn' | 'error';
