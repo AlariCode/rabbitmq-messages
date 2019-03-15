@@ -1,6 +1,11 @@
 # Change log
+## v0.7.6
+- Fixed missing messages
+- Changed log icons
+- Fixed logging objects
+
 ## v0.7.0
-- Added logger option to log sent and recieved messages
+- Added logger option to print all sent and recieved messages
 
 ## v0.6.1
 - Fixed timer issue

@@ -40,7 +40,7 @@ export abstract class RMQController {
                 displayTimestamp: true,
                 displayDate: true,
             },
-            logLevel: options.logLevel ? options.logLevel : 'error',
+            logLevel: options.logMessages ? 'info' : 'error',
             types: CUSTOM_LOGS
         });
         this.init();
@@ -102,6 +102,7 @@ export abstract class RMQController {
                 clearTimeout(timerId);
                 const { content } = msg;
                 if (content.toString()) {
+                    this.logger.recieved(`[${topic}] ${content.toString()}`);
                     resolve(JSON.parse(content.toString()));
                 } else {
                     reject(new Error(ERROR_NONE_RPC));
@@ -111,7 +112,7 @@ export abstract class RMQController {
                 replyTo: this.replyQueue,
                 correlationId,
             });
-            this.logger.sent(`[${topic}] ${message}`);
+            this.logger.sent(`[${topic}] ${JSON.stringify(message)}`);
         });
     }
 
@@ -120,7 +121,7 @@ export abstract class RMQController {
             await this.init();
         }
         this.channel.publish(this.options.exchangeName, topic, Buffer.from(JSON.stringify(message)));
-        this.logger.sent(`[${topic}] ${message}`);
+        this.logger.sent(`[${topic}] ${JSON.stringify(message)}`);
     }
 
     private async handleMessage(msg: Message): Promise<void> {
@@ -138,14 +139,14 @@ export abstract class RMQController {
                 this.channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(result)), {
                     correlationId: msg.properties.correlationId,
                 });
-                this.logger.sent(`[${msg.fields.routingKey}] ${result}`);
+                this.logger.sent(`[${msg.fields.routingKey}] ${JSON.stringify(result)}`);
             }
         } else {
             if (msg.properties.replyTo) {
                 this.channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify({ error: ERROR_NO_ROUTE })), {
                     correlationId: msg.properties.correlationId,
                 });
-                this.logger.sent(`[${msg.fields.routingKey}] ${ERROR_NO_ROUTE}`);
+                this.logger.sent(`[${msg.fields.routingKey}] ${JSON.stringify({ error: ERROR_NO_ROUTE })}`);
             }
         }
     }
