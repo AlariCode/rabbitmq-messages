@@ -1,4 +1,5 @@
 # RabbitMQ RPC library
+![alt cover](https://github.com/AlariCode/rabbitmq-messages/raw/master/img/cover.jpg)
 
 This library will take care of RPC requests and messaging between microservices. It is easy to bind to our existing controllers to RMQ routes. You can use it with any NodeJS framework.
 
