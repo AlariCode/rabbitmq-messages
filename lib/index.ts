@@ -120,7 +120,7 @@ export abstract class RMQController {
         if (!this.server || !this.server.isConnected()) {
             await this.init();
         }
-        this.channel.publish(this.options.exchangeName, topic, Buffer.from(JSON.stringify(message)));
+        await this.channel.publish(this.options.exchangeName, topic, Buffer.from(JSON.stringify(message)));
         this.logger.sent(`[${topic}] ${JSON.stringify(message)}`);
     }
 

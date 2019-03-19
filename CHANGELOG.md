@@ -1,4 +1,7 @@
 # Change log
+## v0.7.8
+- Fixed await in notify
+
 ## v0.7.6
 - Fixed missing messages
 - Changed log icons
