@@ -7,6 +7,8 @@ export interface IRMQServiceOptions {
     };
     prefetchCount?: number;
     isGlobalPrefetchCount?: boolean;
+    isQueueDurable?: boolean;
+    isExchangeDurable?: boolean;
     reconnectTimeInSeconds?: number;
     messagesTimeout?: number;
     logMessages?: boolean;

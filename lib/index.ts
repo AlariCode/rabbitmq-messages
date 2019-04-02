@@ -41,7 +41,7 @@ export abstract class RMQController {
                 displayDate: true,
             },
             logLevel: options.logMessages ? 'info' : 'error',
-            types: CUSTOM_LOGS
+            types: CUSTOM_LOGS,
         });
         this.init();
     }
@@ -52,16 +52,20 @@ export abstract class RMQController {
             return `amqp://${connection.login}:${connection.password}@${connection.host}`;
         });
         const connectionOptins = {
-            reconnectTimeInSeconds: this.options.reconnectTimeInSeconds ? this.options.reconnectTimeInSeconds : DEFAULT_RECONNECT_TIME,
+            reconnectTimeInSeconds: this.options.reconnectTimeInSeconds
+                ? this.options.reconnectTimeInSeconds
+                : DEFAULT_RECONNECT_TIME,
         };
         this.server = amqp.connect(connectionURLs, connectionOptins);
         this.channel = this.server.createChannel({
             json: false,
             setup: async (channel: Channel) => {
-                await channel.assertExchange(this.options.exchangeName, EXCHANGE_TYPE, { durable: true });
+                await channel.assertExchange(this.options.exchangeName, EXCHANGE_TYPE, {
+                    durable: this.options.isExchangeDurable ? this.options.isExchangeDurable : true,
+                });
                 if (this.options.queueName) {
                     await channel.assertQueue(this.options.queueName, {
-                        durable: true,
+                        durable: this.options.isQueueDurable ? this.options.isQueueDurable : true,
                         arguments: this.options.queueArguments ? this.options.queueArguments : {},
                     });
                     channel.consume(this.options.queueName, (msg: Message) => this.handleMessage(msg), { noAck: true });
@@ -75,9 +79,13 @@ export abstract class RMQController {
                     this.options.prefetchCount ? this.options.prefetchCount : 0,
                     this.options.isGlobalPrefetchCount ? this.options.isGlobalPrefetchCount : false,
                 );
-                channel.consume(this.replyQueue, (msg: Message) => {
-                    this.responseEmitter.emit(msg.properties.correlationId, msg);
-                }, { noAck: true });
+                channel.consume(
+                    this.replyQueue,
+                    (msg: Message) => {
+                        this.responseEmitter.emit(msg.properties.correlationId, msg);
+                    },
+                    { noAck: true },
+                );
                 this.logger.success(CONNECTED_MESSAGE);
             },
         });
@@ -143,9 +151,13 @@ export abstract class RMQController {
             }
         } else {
             if (msg.properties.replyTo) {
-                this.channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify({ error: ERROR_NO_ROUTE })), {
-                    correlationId: msg.properties.correlationId,
-                });
+                this.channel.sendToQueue(
+                    msg.properties.replyTo,
+                    Buffer.from(JSON.stringify({ error: ERROR_NO_ROUTE })),
+                    {
+                        correlationId: msg.properties.correlationId,
+                    },
+                );
                 this.logger.sent(`[${msg.fields.routingKey}] ${JSON.stringify({ error: ERROR_NO_ROUTE })}`);
             }
         }
@@ -161,7 +173,7 @@ export abstract class RMQController {
     }
 }
 
-export const RMQRoute = (route) => {
+export const RMQRoute = route => {
     return (target, propertyKey, descriptor) => {
         let routes = Reflect.getMetadata(RMQ_ROUTES_META, target);
         if (!routes) {

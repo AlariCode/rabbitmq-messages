@@ -1,45 +1,45 @@
 {
-  "name": "rabbitmq-messages",
-  "version": "0.7.8",
-  "description": "RabbitMQ RPC library",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "scripts": {
-    "prepublish": "./node_modules/.bin/tsc -p tsconfig.json",
-    "test": "mocha --require ts-node/register tests/**/*.ts"
-  },
-  "author": "Anton Larichev <antonlarichev@gmail.com>",
-  "keywords": [
-    "rabbitmq",
-    "typescript",
-    "nodejs"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/AlariCode/rabbitmq-rpc"
-  },
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/AlariCode/rabbitmq-rpc/issues"
-  },
-  "homepage": "https://github.com/AlariCode/rabbitmq-rpc",
-  "dependencies": {
-    "amqp-connection-manager": "^2.3.0",
-    "amqplib": "^0.5.3",
-    "signale": "^1.4.0"
-  },
-  "devDependencies": {
-    "@types/amqp-connection-manager": "^2.0.2",
-    "@types/amqplib": "^0.5.9",
-    "@types/chai": "^4.1.4",
-    "@types/mocha": "^5.2.5",
-    "@types/sinon": "^5.0.2",
-    "chai": "^4.1.2",
-    "mocha": "^5.2.0",
-    "reflect-metadata": "^0.1.12",
-    "sinon": "^6.2.0",
-    "ts-node": "^7.0.1",
-    "tslint": "^5.8.0",
-    "typescript": "^3.2.2"
-  }
+    "name": "rabbitmq-messages",
+    "version": "0.7.9",
+    "description": "RabbitMQ RPC library",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "prepublish": "./node_modules/.bin/tsc -p tsconfig.json",
+        "test": "mocha --require ts-node/register tests/**/*.ts"
+    },
+    "author": "Anton Larichev <antonlarichev@gmail.com>",
+    "keywords": [
+        "rabbitmq",
+        "typescript",
+        "nodejs"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/AlariCode/rabbitmq-rpc"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/AlariCode/rabbitmq-rpc/issues"
+    },
+    "homepage": "https://github.com/AlariCode/rabbitmq-rpc",
+    "dependencies": {
+        "amqp-connection-manager": "^2.3.0",
+        "amqplib": "^0.5.3",
+        "signale": "^1.4.0"
+    },
+    "devDependencies": {
+        "@types/amqp-connection-manager": "^2.0.2",
+        "@types/amqplib": "^0.5.9",
+        "@types/chai": "^4.1.4",
+        "@types/mocha": "^5.2.5",
+        "@types/sinon": "^5.0.2",
+        "chai": "^4.1.2",
+        "mocha": "^5.2.0",
+        "reflect-metadata": "^0.1.12",
+        "sinon": "^6.2.0",
+        "ts-node": "^7.0.1",
+        "tslint": "^5.8.0",
+        "typescript": "^3.2.2"
+    }
 }
