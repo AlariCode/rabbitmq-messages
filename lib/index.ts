@@ -132,6 +132,12 @@ export abstract class RMQController {
         this.logger.sent(`[${topic}] ${JSON.stringify(message)}`);
     }
 
+    public async disconnect() {
+        this.responseEmitter.removeAllListeners();
+        await this.channel.close();
+        await this.server.close();
+    }
+
     private async handleMessage(msg: Message): Promise<void> {
         this.logger.recieved(`[${msg.fields.routingKey}] ${msg.content}`);
         const route = this.router.find(r => r.route === msg.fields.routingKey);

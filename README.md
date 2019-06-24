@@ -133,6 +133,10 @@ this.send('sum.rpc', [1, 2, 3]).then(reply => {
 
 Each '@RMQRoute' topic will be automatically bound to queue specified in 'queueName' option.
 
+## Disconnecting
+
+If you want to close connection, for example, if you are using RMQ in testing tools, use `disconnect()` method;
+
 # Breaking Changes
 
 ## v0.5.0

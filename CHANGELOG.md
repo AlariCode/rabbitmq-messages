@@ -1,5 +1,9 @@
 # Change log
 
+## v0.8.0
+
+-   Added disconnect() method for closing connection
+
 ## v0.7.9
 
 -   Added durable arguments for queue and exchange
