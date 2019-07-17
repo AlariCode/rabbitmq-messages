@@ -109,6 +109,9 @@ export abstract class RMQController {
             this.responseEmitter.once(correlationId, (msg: Message) => {
                 clearTimeout(timerId);
                 const { content } = msg;
+                if (msg.properties.headers['-x-error']) {
+                    reject(new Error(msg.properties.headers['-x-error']));
+                }
                 if (content.toString()) {
                     this.logger.recieved(`[${topic}] ${content.toString()}`);
                     resolve(JSON.parse(content.toString()));

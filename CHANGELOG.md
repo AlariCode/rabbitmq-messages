@@ -1,5 +1,9 @@
 # Change log
 
+## v0.8.2
+
+-   Added '-x-error' header handling to display error message
+
 ## v0.8.0
 
 -   Added disconnect() method for closing connection
