@@ -131,7 +131,16 @@ this.send('sum.rpc', [1, 2, 3]).then(reply => {
 });
 ```
 
-Each '@RMQRoute' topic will be automatically bound to queue specified in 'queueName' option.
+Each '@RMQRoute' topic will be automatically bound to queue specified in 'queueName' option. If you want to return an Error just throw it in youe method:
+
+```javascript
+@RMQRoute('my.rpc')
+myMethod(numbers: number[]): number {
+	//...
+	throw new Error('Error message')
+	//...
+}
+```
 
 ## Disconnecting
 

@@ -1,5 +1,9 @@
 # Change log
 
+## v0.8.4
+
+-   You can throw Error from your RMQ route that will add '-x-error' header.
+
 ## v0.8.2
 
 -   Added '-x-error' header handling to display error message

@@ -149,14 +149,22 @@ export abstract class RMQController {
             let result;
             try {
                 result = await this[route.propertyKey](JSON.parse(content.toString()));
+                if (msg.properties.replyTo) {
+                    this.channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(result)), {
+                        correlationId: msg.properties.correlationId,
+                    });
+                    this.logger.sent(`[${msg.fields.routingKey}] ${JSON.stringify(result)}`);
+                }
             } catch (err) {
-                this.logger.error(err.message);
-            }
-            if (msg.properties.replyTo && result) {
-                this.channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(result)), {
-                    correlationId: msg.properties.correlationId,
-                });
-                this.logger.sent(`[${msg.fields.routingKey}] ${JSON.stringify(result)}`);
+                if (msg.properties.replyTo) {
+                    this.channel.sendToQueue(msg.properties.replyTo, Buffer.from(''), {
+                        correlationId: msg.properties.correlationId,
+                        headers: {
+                            '-x-error': err.message,
+                        },
+                    });
+                    this.logger.error(`[${msg.fields.routingKey}] ${JSON.stringify(err.message)}`);
+                }
             }
         } else {
             if (msg.properties.replyTo) {
